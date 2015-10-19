@@ -1,7 +1,7 @@
 package tcpx
 
 import (
-	"log"
+	"fmt"
 )
 
 const (
@@ -47,7 +47,7 @@ func (self *Server) Listen(port string) {
 		for {
 			select {
 			case msg := <-self.incoming:
-				log.Println(msg)
+				fmt.Println(msg)
 			case client := <-self.pending:
 				self.Join(client)
 				//
@@ -80,7 +80,7 @@ func (self *Server) Start(port string) {
 	// l, _ := net.Listen("tcp", fmt.Sprintf(":%s", port))
 	// self.listener = l
 	// defer self.listener.Close()
-	defer self.s.Close()
+	defer self.Close()
 	// chan listen
 
 	for {
@@ -100,4 +100,9 @@ func (self *Server) Start(port string) {
 		// }(conn)
 		// }
 	}
+}
+
+func (self *Server) Close() {
+	logger.Println("server close")
+	self.s.Close()
 }

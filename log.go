@@ -9,10 +9,8 @@ var logger *log.Logger
 var file *os.File
 
 func init() {
-	filename := "gen.log"
-
-	_, err := os.Stat(filename)
-	file, err = os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	_, err := os.Stat(LOG_FILE_NAME)
+	file, err = os.OpenFile(LOG_FILE_NAME, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 
 	if err != nil {
 		log.Println("log file set err")

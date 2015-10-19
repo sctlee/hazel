@@ -31,7 +31,6 @@ func (self *TCPServer) Accept() (tc *TCPClient) {
 }
 
 func (self *TCPServer) Close() {
-	logger.Println("server close")
 	self.listener.Close()
 }
 
@@ -42,6 +41,7 @@ func (self *TCPClient) TRead(incoming chan string) {
 			incoming <- string(line)
 		} else {
 			fmt.Printf("Read error: %s\n", err)
+			self.Conn.Close()
 			return
 		}
 	}
@@ -54,4 +54,8 @@ func (self *TCPClient) TWrite(outgoing chan string) {
 		// q: why flush is necessary? a:using buf mean: it won't send immedicately until buf is full
 		writer.Flush()
 	}
+}
+
+func (self *TCPClient) Close() {
+	self.Conn.Close()
 }

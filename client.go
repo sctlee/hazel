@@ -8,6 +8,7 @@ type Xtime struct {
 type IClient interface {
 	TRead(incoming chan string)
 	TWrite(outgoing chan string)
+	Close()
 }
 
 type Client struct {
@@ -36,6 +37,11 @@ func (self *Client) GetIncoming() chan string {
 
 func (self *Client) PutOutgoing(str string) {
 	self.outgoing <- str
+}
+
+func (self *Client) Close() {
+	logger.Println("client close")
+	self.c.Close()
 }
 
 // func (client *Client) TRead() {
