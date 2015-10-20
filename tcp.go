@@ -20,7 +20,6 @@ func (self *TCPServer) Listen(port string) {
 
 func (self *TCPServer) Accept() (tc *TCPClient) {
 	if conn, err := self.listener.Accept(); err == nil {
-		fmt.Printf("%v", conn)
 		tc = &TCPClient{
 			Conn: conn,
 		}
@@ -34,26 +33,31 @@ func (self *TCPServer) Close() {
 	self.listener.Close()
 }
 
-func (self *TCPClient) TRead(incoming chan string) {
+func (self *TCPClient) TRead(incoming chan string) error {
 	reader := bufio.NewReader(self.Conn)
 	for {
 		if line, _, err := reader.ReadLine(); err == nil {
 			incoming <- string(line)
 		} else {
-			fmt.Printf("Read error: %s\n", err)
+			// fmt.Printf("Read error: %s\n", err)
 			self.Conn.Close()
-			return
+			return err
 		}
 	}
 }
 
-func (self *TCPClient) TWrite(outgoing chan string) {
+func (self *TCPClient) TWrite(outgoing chan string) error {
+	var err error
 	writer := bufio.NewWriter(self.Conn)
 	for data := range outgoing {
-		writer.WriteString(data + "\n")
+		_, err = writer.WriteString(data + "\n")
 		// q: why flush is necessary? a:using buf mean: it won't send immedicately until buf is full
+		if err != nil {
+			break
+		}
 		writer.Flush()
 	}
+	return err
 }
 
 func (self *TCPClient) Close() {

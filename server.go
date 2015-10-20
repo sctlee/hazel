@@ -62,16 +62,20 @@ func (self *Server) Join(ic IClient) {
 	client := CreateClient(ic)
 	self.clients[ic] = client
 
-	go func() {
-		for msg := range client.GetIncoming() {
+	logger.Println("one client joined ")
+
+	go func(c *Client) {
+		for msg := range c.GetIncoming() {
 			// package msg whish conn
 			// msg = fmt.Sprintf("format string", a ...interface{})
-			if !self.Router.Route(client, msg) {
-				client.PutOutgoing("command error, Usage:'chatroom join 1','chatroom send hello'")
+			if !self.Router.Route(c, msg) {
+				c.PutOutgoing("command error, Usage:'chatroom join 1','chatroom send hello'")
 				// self.incoming <- msg
 			}
 		}
-	}()
+		delete(self.clients, c.c)
+		logger.Println("one client quited")
+	}(client)
 }
 
 func (self *Server) Start(port string) {
