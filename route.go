@@ -2,11 +2,14 @@ package tcpx
 
 import (
 	"fmt"
-	"strings"
+
+	"github.com/sctlee/tcpx/protocol"
 	// "secret/chatroom"
 )
 
-type RouteFun func(url string, c *Client)
+var pt protocol.Protocol
+
+type RouteFun func(params map[string]string, c *Client)
 
 type Router struct {
 	RouteList map[string]RouteFun
@@ -14,12 +17,13 @@ type Router struct {
 
 func (self *Router) Route(client *Client, msg string) bool {
 	fmt.Printf("route %v msg:%s", client, msg)
-	i := strings.Index(msg, " ")
-	fmt.Println(i)
-	if i != -1 {
-		command := msg[:i]
-		fmt.Println(msg[i:])
-		self.RouteList[command](msg[i:], client)
+
+	pt = new(protocol.SimpleProtocol)
+	m := pt.Marshal(msg)
+	fmt.Println(m)
+
+	if f, ok := self.RouteList[m["feature"]]; ok {
+		f(m, client)
 		return true
 	}
 	return false
