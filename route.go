@@ -11,19 +11,17 @@ var pt protocol.Protocol
 
 type RouteFun func(params map[string]string, c *Client)
 
-type Router struct {
-	RouteList map[string]RouteFun
-}
+type RouterList map[string]RouteFun
 
-func (self *Router) Route(client *Client, msg string) bool {
+func (self RouterList) RouteMsg(client *Client, msg string) bool {
 	fmt.Printf("route %v msg:%s", client, msg)
 
 	pt = new(protocol.SimpleProtocol)
-	m := pt.Marshal(msg)
-	fmt.Println(m)
+	params := pt.Marshal(msg)
+	fmt.Println(params)
 
-	if f, ok := self.RouteList[m["feature"]]; ok {
-		f(m, client)
+	if route, ok := self[params["feature"]]; ok {
+		route(params, client)
 		return true
 	}
 	return false
