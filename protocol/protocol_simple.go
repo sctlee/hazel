@@ -25,3 +25,7 @@ func (self *SimpleProtocol) Marshal(str string) map[string]string {
 
 	return m
 }
+
+func (self *SimpleProtocol) UnMarshal(params map[string]string) string {
+	return ""
+}

@@ -68,7 +68,11 @@ func (self *Server) Join(ic IClient) {
 			logger.Println("one client quited")
 		}()
 
-		for msg := range c.GetIncoming() {
+		for {
+			msg, ok := c.GetMessage()
+			if !ok {
+				break
+			}
 			// package msg whish conn
 			// msg = fmt.Sprintf("format string", a ...interface{})
 			if !self.Routers.RouteMsg(c, msg) {
