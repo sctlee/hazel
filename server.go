@@ -69,12 +69,10 @@ func (self *Server) Join(ic IClient) {
 		}()
 
 		for {
-			msg, ok := c.GetMessage()
+			msg, ok := c.GetIncoming()
 			if !ok {
 				break
 			}
-			// package msg whish conn
-			// msg = fmt.Sprintf("format string", a ...interface{})
 			if !self.Routers.RouteMsg(c, msg) {
 				c.PutOutgoing("command error, Usage:'chatroom join 1','chatroom send hello'")
 				// self.incoming <- msg

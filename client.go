@@ -24,11 +24,16 @@ type IClient interface {
 	Close()
 }
 
+type OnCloseListener interface {
+	OnClose(client *Client)
+}
+
 type Client struct {
-	c        IClient
-	incoming chan string
-	outgoing chan string
-	State    int
+	c            IClient
+	incoming     chan string
+	outgoing     chan string
+	onCloseFuncs []OnCloseListener
+	State        int
 }
 
 func init() {
@@ -37,8 +42,7 @@ func init() {
 
 func CreateClient(ic IClient) (client *Client) {
 	client = &Client{
-		c: ic,
-		// Conn:     conn,
+		c:        ic,
 		incoming: make(chan string),
 		outgoing: make(chan string),
 		State:    CLIENT_STATE_OPEN,
@@ -77,7 +81,16 @@ func (self *Client) PutOutgoing(str string) {
 	}
 }
 
+func (self *Client) SetOnCloseListener(onCloseListener OnCloseListener) {
+	self.onCloseFuncs = append(self.onCloseFuncs, onCloseListener)
+}
+
 func (self *Client) Close() {
+	//trigger delegation event
+	for _, f := range self.onCloseFuncs {
+		f.OnClose(self)
+	}
+
 	self.c.Close()
 	self.State = CLIENT_STATE_CLOSE
 	// close mean to notify a receiver not to expect any more values to be sent.
@@ -86,6 +99,7 @@ func (self *Client) Close() {
 	// here(it's not a producer)
 	close(self.incoming)
 	close(self.outgoing)
+
 	logger.Println("Client close")
 	log.Println("Client close")
 }
