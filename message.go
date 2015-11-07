@@ -2,8 +2,6 @@ package tcpx
 
 import (
 	"fmt"
-
-	"github.com/sctlee/tcpx/protocol"
 )
 
 type IMessage interface {
@@ -31,7 +29,6 @@ func NewMessage(c *Client, data interface{}) IMessage {
 	default:
 		d = "Error: Can't parse the type of message!"
 	}
-	fmt.Println(fmt.Sprintf("hahah:%s", d))
 	return &Message{
 		rawData: d,
 		client:  c,
@@ -46,8 +43,6 @@ func NewBoardMessage(c *Client, data interface{}, mc []*Client) IMessage {
 }
 
 func (self *Message) Get() map[string]string {
-	var pt protocol.Protocol
-	pt = new(protocol.SimpleProtocol)
 	return pt.Marshal(self.rawData)
 }
 

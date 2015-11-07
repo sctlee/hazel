@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/sctlee/tcpx/protocol"
+
 	"github.com/jackc/pgx"
 	"gopkg.in/yaml.v2"
 )
@@ -11,6 +13,8 @@ import (
 const (
 	LOG_FILE_NAME = "gen.log"
 )
+
+var pt protocol.Protocol
 
 type Config struct {
 	Host string
@@ -27,6 +31,8 @@ func LoadConfig(filePath string) (config Config) {
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	pt = new(protocol.SimpleProtocol)
 
 	return
 }
