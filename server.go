@@ -20,11 +20,12 @@ type Server struct {
 	s IServer
 	// listener net.Listener
 	clients ClientTable
-	Routers RouterList
 	pending chan IClient
 	// quiting  chan net.Conn
 	incoming chan string
 	outgoing chan string
+
+	Routers RouterList
 }
 
 func CreateServer() (server *Server) {

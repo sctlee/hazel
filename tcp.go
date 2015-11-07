@@ -6,6 +6,12 @@ import (
 	"net"
 )
 
+type IClient interface {
+	TRead(incoming chan string) error
+	TWrite(outgoing chan string) error
+	Close()
+}
+
 type TCPServer struct {
 	listener net.Listener
 }
