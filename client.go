@@ -29,11 +29,12 @@ type OnCloseListener interface {
 }
 
 type Client struct {
-	c            IClient
-	incoming     chan string
-	outgoing     chan string
+	c        IClient
+	incoming chan string
+	outgoing chan string
+	State    int
+
 	onCloseFuncs []OnCloseListener
-	State        int
 }
 
 func init() {
@@ -54,22 +55,6 @@ func CreateClient(ic IClient) (client *Client) {
 	return
 }
 
-func (self *Client) GetMessage() (params map[string]string, ok bool) {
-	msg, ok := <-self.incoming
-	if ok {
-		params = pt.Marshal(msg)
-	}
-
-	return
-}
-
-func (self *Client) PutMessage(params map[string]string) {
-	if self.State == CLIENT_STATE_OPEN {
-		msg := pt.UnMarshal(params)
-		self.outgoing <- msg
-	}
-}
-
 func (self *Client) GetIncoming() (msg string, ok bool) {
 	msg, ok = <-self.incoming
 	return
@@ -79,10 +64,6 @@ func (self *Client) PutOutgoing(str string) {
 	if self.State == CLIENT_STATE_OPEN {
 		self.outgoing <- str
 	}
-}
-
-func (self *Client) SetOnCloseListener(onCloseListener OnCloseListener) {
-	self.onCloseFuncs = append(self.onCloseFuncs, onCloseListener)
 }
 
 func (self *Client) Close() {
@@ -124,24 +105,6 @@ func (self *Client) Write() {
 	}
 }
 
-// func (client *Client) TRead() {
-// 	reader := bufio.NewReader(client.Conn)
-// 	for {
-// 		if line, _, err := reader.ReadLine(); err == nil {
-// 			client.Incoming <- string(line)
-// 		} else {
-// 			fmt.Printf("Read error: %s\n", err)
-// 			return
-// 		}
-//
-// 	}
-// }
-//
-// func (client *Client) TWrite() {
-// 	writer := bufio.NewWriter(client.Conn)
-// 	for data := range client.Outgoing {
-// 		writer.WriteString(data + "\n")
-// 		// q: why flush is necessary? a:using buf mean: it won't send immedicately until buf is full
-// 		writer.Flush()
-// 	}
-// }
+func (self *Client) SetOnCloseListener(onCloseListener OnCloseListener) {
+	self.onCloseFuncs = append(self.onCloseFuncs, onCloseListener)
+}
