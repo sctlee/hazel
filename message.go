@@ -29,7 +29,6 @@ func NewMessage(c *Client, data interface{}) IMessage {
 	default:
 		d = "Error: Can't parse the type of message!"
 	}
-	fmt.Println(fmt.Sprintf("hahah:%s", d))
 	return &Message{
 		rawData: d,
 		client:  c,

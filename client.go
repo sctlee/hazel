@@ -14,31 +14,35 @@ type Xtime struct {
 	question string
 }
 
-type IClient interface {
-	TRead(incoming chan string) error
-	TWrite(outgoing chan string) error
-	Close()
-}
-
 type OnCloseListener interface {
 	OnClose(client *Client)
+}
+
+type Session interface {
+	Get(key interface{}) interface{}
+	Set(key interface{}, value interface{})
 }
 
 type Client struct {
 	c        IClient
 	incoming chan string
 	outgoing chan string
-	State    int
 
-	onCloseFuncs []OnCloseListener
+	State int
+
+	// extend features
+	onCloseFuncs      []OnCloseListener
+	sharedPreferences map[string]SharedPreferences
 }
 
 func CreateClient(ic IClient) (client *Client) {
 	client = &Client{
-		c:        ic,
-		incoming: make(chan string),
-		outgoing: make(chan string),
-		State:    CLIENT_STATE_OPEN,
+		c:                 ic,
+		incoming:          make(chan string),
+		outgoing:          make(chan string),
+		State:             CLIENT_STATE_OPEN,
+		onCloseFuncs:      make([]OnCloseListener, 0),
+		sharedPreferences: make(map[string]SharedPreferences),
 	}
 
 	go client.Read()
@@ -56,25 +60,6 @@ func (self *Client) PutOutgoing(str string) {
 	if self.State == CLIENT_STATE_OPEN {
 		self.outgoing <- str
 	}
-}
-
-func (self *Client) Close() {
-	//trigger delegation event
-	for _, f := range self.onCloseFuncs {
-		f.OnClose(self)
-	}
-
-	self.c.Close()
-	self.State = CLIENT_STATE_CLOSE
-	// close mean to notify a receiver not to expect any more values to be sent.
-	// but in a feature, it doesn't know the conn's stat, so it doesn't know if
-	// the channel is useless, so it can't close the channel, so don't close it
-	// here(it's not a producer)
-	close(self.incoming)
-	close(self.outgoing)
-
-	logger.Println("Client close")
-	log.Println("Client close")
 }
 
 func (self *Client) Read() {
@@ -97,6 +82,34 @@ func (self *Client) Write() {
 	}
 }
 
+func (self *Client) Close() {
+	//trigger delegation event
+	for _, f := range self.onCloseFuncs {
+		f.OnClose(self)
+	}
+
+	self.c.Close()
+	self.State = CLIENT_STATE_CLOSE
+	// close mean to notify a receiver not to expect any more values to be sent.
+	// but in a feature, it doesn't know the conn's stat, so it doesn't know if
+	// the channel is useless, so it can't close the channel, so don't close it
+	// here(it's not a producer)
+	close(self.incoming)
+	close(self.outgoing)
+
+	logger.Println("Client close")
+	log.Println("Client close")
+}
+
 func (self *Client) SetOnCloseListener(onCloseListener OnCloseListener) {
 	self.onCloseFuncs = append(self.onCloseFuncs, onCloseListener)
+}
+
+func (self *Client) GetSharedPreferences(key string) (sp SharedPreferences) {
+	if sp, ok := self.sharedPreferences[key]; ok {
+		return sp
+	}
+	sp = NewSharePreferences("map")
+	self.sharedPreferences[key] = sp
+	return sp
 }
