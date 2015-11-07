@@ -2,16 +2,12 @@ package tcpx
 
 import (
 	"log"
-
-	"github.com/sctlee/tcpx/protocol"
 )
 
 const (
 	CLIENT_STATE_OPEN  = 1
 	CLIENT_STATE_CLOSE = 2
 )
-
-var pt protocol.Protocol
 
 type Xtime struct {
 	isExist  bool
@@ -35,10 +31,6 @@ type Client struct {
 	State    int
 
 	onCloseFuncs []OnCloseListener
-}
-
-func init() {
-	pt = new(protocol.SimpleProtocol)
 }
 
 func CreateClient(ic IClient) (client *Client) {
