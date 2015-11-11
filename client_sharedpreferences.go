@@ -3,6 +3,7 @@ package tcpx
 type SharedPreferences interface {
 	Get(key string) (string, bool)
 	Set(key string, value string)
+	Del(key string)
 }
 
 type MapSharedPreferences struct {
@@ -25,4 +26,8 @@ func (self *MapSharedPreferences) Set(key string, value string) {
 func (self *MapSharedPreferences) Get(key string) (string, bool) {
 	value, ok := self.dict[key]
 	return value, ok
+}
+
+func (self *MapSharedPreferences) Del(key string) {
+	delete(self.dict, key)
 }
