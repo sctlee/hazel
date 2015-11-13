@@ -2,25 +2,28 @@ package tcpx
 
 import (
 	"fmt"
+	"net"
+
+	"github.com/sctlee/tcpx/base"
 )
 
 const (
 	MAXCLIENTS = 50
 )
 
+type ClientTable map[IClient]*Client
+
 type IServer interface {
 	Listen(port string)
-	Accept() (tc *TCPClient)
+	Accept() (net.Conn, error)
 	Close()
 }
 
-type ClientTable map[IClient]*Client
-
 type Server struct {
-	s IServer
+	s base.IServer
 	// listener net.Listener
 	clients ClientTable
-	pending chan IClient
+	pending chan *Client
 	// quiting  chan net.Conn
 	incoming chan string
 	outgoing chan string
@@ -30,10 +33,10 @@ type Server struct {
 
 func CreateServer() (server *Server) {
 	server = &Server{
-		s:       &TCPServer{},
+		s:       base.NewTCPServer(),
 		clients: make(ClientTable),
 		Routers: make(RouterList),
-		pending: make(chan IClient),
+		pending: make(chan *Client),
 		// quiting:  make(chan net.Conn),
 		incoming: make(chan string),
 		outgoing: make(chan string),
@@ -57,9 +60,8 @@ func (self *Server) Listen(port string) {
 	self.s.Listen(port)
 }
 
-func (self *Server) Join(ic IClient) {
-	client := CreateClient(ic)
-	self.clients[ic] = client
+func (self *Server) Join(client *Client) {
+	self.clients[client.c] = client
 
 	logger.Println("one client joined ")
 
@@ -92,7 +94,13 @@ func (self *Server) Start(port string) {
 	// chan listen
 
 	for {
-		self.pending <- self.s.Accept()
+		conn, err := self.s.Accept()
+		if err != nil {
+			logger.Println(err)
+		} else {
+			client := CreateClient(conn)
+			self.pending <- client
+		}
 		// if conn, err := self.listener.Accept(); err == nil {
 		// 	self.pending <- conn
 		// go func(c net.Conn) {

@@ -2,6 +2,10 @@ package tcpx
 
 import (
 	"log"
+	"net"
+
+	"github.com/sctlee/tcpx/base"
+	"github.com/sctlee/tcpx/sharedpreferences"
 )
 
 const (
@@ -17,10 +21,10 @@ type Xtime struct {
 type OnCloseListener interface {
 	OnClose(client *Client)
 }
-
-type Session interface {
-	Get(key interface{}) interface{}
-	Set(key interface{}, value interface{})
+type IClient interface {
+	TRead(incoming chan string) error
+	TWrite(outgoing chan string) error
+	Close()
 }
 
 type Client struct {
@@ -32,17 +36,17 @@ type Client struct {
 
 	// extend features
 	onCloseFuncs      []OnCloseListener
-	sharedPreferences map[string]SharedPreferences
+	sharedPreferences map[string]sharedpreferences.SharedPreferences
 }
 
-func CreateClient(ic IClient) (client *Client) {
+func CreateClient(conn net.Conn) (client *Client) {
 	client = &Client{
-		c:                 ic,
+		c:                 base.NewTCPClient(conn),
 		incoming:          make(chan string),
 		outgoing:          make(chan string),
 		State:             CLIENT_STATE_OPEN,
 		onCloseFuncs:      make([]OnCloseListener, 0),
-		sharedPreferences: make(map[string]SharedPreferences),
+		sharedPreferences: make(map[string]sharedpreferences.SharedPreferences),
 	}
 
 	go client.Read()
@@ -105,11 +109,11 @@ func (self *Client) SetOnCloseListener(onCloseListener OnCloseListener) {
 	self.onCloseFuncs = append(self.onCloseFuncs, onCloseListener)
 }
 
-func (self *Client) GetSharedPreferences(key string) (sp SharedPreferences) {
+func (self *Client) GetSharedPreferences(key string) (sp sharedpreferences.SharedPreferences) {
 	if sp, ok := self.sharedPreferences[key]; ok {
 		return sp
 	}
-	sp = NewSharePreferences("map")
+	sp = sharedpreferences.NewSharePreferences("map")
 	self.sharedPreferences[key] = sp
 	return sp
 }

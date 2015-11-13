@@ -1,4 +1,4 @@
-package tcpx
+package sharedpreferences
 
 type SharedPreferences interface {
 	Get(key string) (string, bool)

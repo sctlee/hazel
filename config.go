@@ -3,7 +3,9 @@ package tcpx
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 
+	"github.com/sctlee/tcpx/mlog"
 	"github.com/sctlee/tcpx/protocol"
 
 	"github.com/jackc/pgx"
@@ -15,11 +17,13 @@ const (
 )
 
 var pt protocol.Protocol
+var logger *log.Logger
 
 type Config struct {
-	Host string
-	Port string
-	Db   pgx.ConnConfig
+	Host    string
+	Port    string
+	LogFile string
+	Db      pgx.ConnConfig
 }
 
 func LoadConfig(filePath string) (config Config) {
@@ -33,6 +37,7 @@ func LoadConfig(filePath string) (config Config) {
 	}
 
 	pt = new(protocol.SimpleProtocol)
+	logger = mlog.InitLogger(LOG_FILE_NAME)
 
 	return
 }
