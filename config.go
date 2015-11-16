@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	LOG_FILE_NAME = "gen.log"
+	LOG_DEFAULT_FILE = "gen.log"
 )
 
 var pt protocol.Protocol
@@ -37,7 +37,11 @@ func LoadConfig(filePath string) (config Config) {
 	}
 
 	pt = new(protocol.SimpleProtocol)
-	logger = mlog.InitLogger(LOG_FILE_NAME)
+	if len(config.LogFile) != 0 {
+		logger = mlog.InitLogger(config.LogFile)
+	} else {
+		logger = mlog.InitLogger(LOG_DEFAULT_FILE)
+	}
 
 	return
 }
