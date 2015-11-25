@@ -2,12 +2,12 @@ package tcpx
 
 import (
 	"fmt"
+	"strings"
 )
 
 type IMessage interface {
 	Get() map[string]string // return map[string]string
-	GetClient() *Client
-	SetBoardClients(mc []*Client)
+	SetBoardClients(boardCids []ClientID)
 	exec()
 	send()
 	bcast()
@@ -15,11 +15,11 @@ type IMessage interface {
 
 type Message struct {
 	rawData     string
-	client      *Client
-	multiClient []*Client
+	client      ClientID
+	multiClient []ClientID
 }
 
-func NewMessage(c *Client, data interface{}) IMessage {
+func NewMessage(cid ClientID, data interface{}) IMessage {
 	var d string
 	switch data.(type) {
 	case string:
@@ -31,13 +31,13 @@ func NewMessage(c *Client, data interface{}) IMessage {
 	}
 	return &Message{
 		rawData: d,
-		client:  c,
+		client:  cid,
 	}
 }
 
-func NewBoardMessage(c *Client, data interface{}, mc []*Client) IMessage {
-	msg := NewMessage(c, data)
-	msg.SetBoardClients(mc)
+func NewBoardMessage(cid ClientID, data interface{}, boardCids []ClientID) IMessage {
+	msg := NewMessage(cid, data)
+	msg.SetBoardClients(boardCids)
 	fmt.Println(msg)
 	return msg
 }
@@ -46,13 +46,11 @@ func (self *Message) Get() map[string]string {
 	return pt.Marshal(self.rawData)
 }
 
-func (self *Message) GetClient() *Client {
-	return self.client
-}
-
-func (self *Message) SetBoardClients(mc []*Client) {
-	self.multiClient = make([]*Client, 0)
-	self.multiClient = append(self.multiClient, mc[:]...)
+func (self *Message) SetBoardClients(boardCids []ClientID) {
+	self.multiClient = make([]ClientID, 0)
+	for _, cid := range boardCids {
+		self.multiClient = append(self.multiClient, cid)
+	}
 }
 
 func (self *Message) exec() {
@@ -63,10 +61,46 @@ func (self *Message) exec() {
 	}
 }
 func (self *Message) send() {
-	self.client.PutOutgoing(self.rawData)
+	sname := strings.Split(string(self.client), ".")[0]
+	if sname == serverName {
+		GetClientByID(self.client).PutOutgoing(self.rawData)
+	} else {
+		PutMessage2Harbor(self.client, self.rawData)
+	}
 }
 func (self *Message) bcast() {
 	for _, client := range self.multiClient {
-		go client.PutOutgoing(self.rawData)
+		go func(cid ClientID) {
+			sname := strings.Split(string(cid), ".")[0]
+			if sname == serverName {
+				GetClientByID(cid).PutOutgoing(self.rawData)
+			} else {
+				PutMessage2Harbor(cid, self.rawData)
+			}
+		}(client)
 	}
+}
+
+type MessageManager struct {
+	receiver chan IMessage
+}
+
+var mmanager *MessageManager = NewMessageManager()
+
+func NewMessageManager() *MessageManager {
+	mm := &MessageManager{
+		receiver: make(chan IMessage, 10),
+	}
+
+	go func() {
+		for m := range mm.receiver {
+			go m.exec()
+		}
+	}()
+
+	return mm
+}
+
+func SendMessage(message IMessage) {
+	mmanager.receiver <- message
 }

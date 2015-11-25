@@ -11,7 +11,8 @@ const (
 	MAXCLIENTS = 50
 )
 
-type ClientTable map[IClient]*Client
+type ClientID string
+type ClientTable map[ClientID]*Client
 
 type IServer interface {
 	Listen(port string)
@@ -25,23 +26,11 @@ type Server struct {
 	clients ClientTable
 	pending chan *Client
 	// quiting  chan net.Conn
-	incoming chan string
-	outgoing chan string
+	incoming     chan string
+	outgoing     chan string
+	joinedNumber int
 
 	Routers RouterList
-}
-
-func CreateServer() (server *Server) {
-	server = &Server{
-		s:       base.NewTCPServer(),
-		clients: make(ClientTable),
-		Routers: make(RouterList),
-		pending: make(chan *Client),
-		// quiting:  make(chan net.Conn),
-		incoming: make(chan string),
-		outgoing: make(chan string),
-	}
-	return
 }
 
 func (self *Server) Listen(port string) {
@@ -61,37 +50,40 @@ func (self *Server) Listen(port string) {
 }
 
 func (self *Server) Join(client *Client) {
-	self.clients[client.c] = client
+	genClientID := func() ClientID {
+		return ClientID(fmt.Sprintf("%s.%d", serverName, self.joinedNumber))
+	}
 
+	cid := genClientID()
+	fmt.Println("client id :" + cid)
+	self.clients[cid] = client
+	self.joinedNumber++
 	logger.Println("one client joined ")
 
-	go func(c *Client) {
+	go func(cid ClientID) {
 		defer func() {
-			delete(self.clients, c.c)
+			delete(self.clients, cid)
 			logger.Println("one client quited")
 		}()
+		c := self.clients[cid]
 
 		for {
 			msg, ok := c.GetIncoming()
 			if !ok {
 				break
 			}
-			if !self.Routers.RouteMsg(c, msg) {
+			if !self.Routers.RouteMsg(cid, msg) {
 				c.PutOutgoing("command error, Usage:'chatroom join 1','chatroom send hello'")
 				// self.incoming <- msg
 			}
 		}
-	}(client)
+	}(cid)
 }
 
 func (self *Server) Start(port string) {
 	self.Listen(port)
 	logger.Println("server start")
-	// l, _ := net.Listen("tcp", fmt.Sprintf(":%s", port))
-	// self.listener = l
-	// defer self.listener.Close()
 	defer self.Close()
-	// chan listen
 
 	for {
 		conn, err := self.s.Accept()
@@ -118,7 +110,37 @@ func (self *Server) Start(port string) {
 	}
 }
 
+// func (self *Server) RegisterService(service *Services) {
+//
+// }
+
 func (self *Server) Close() {
 	logger.Println("server close")
 	self.s.Close()
+}
+
+var server *Server
+
+func CreateMainServer() *Server {
+	server = CreateServer()
+
+	// start harbor
+	HarborStart()
+
+	return server
+}
+func CreateServer() *Server {
+	return &Server{
+		s:       base.NewTCPServer(),
+		clients: make(ClientTable),
+		Routers: make(RouterList),
+		pending: make(chan *Client),
+		// quiting:  make(chan net.Conn),
+		incoming: make(chan string),
+		outgoing: make(chan string),
+	}
+}
+
+func GetClientByID(cid ClientID) *Client {
+	return server.clients[cid]
 }
