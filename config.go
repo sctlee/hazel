@@ -19,10 +19,6 @@ const (
 	LOG_DEFAULT_FILE    = "gen.log"
 )
 
-var pt protocol.Protocol
-var logger *log.Logger
-var serverName string
-
 type Config struct {
 	ServerName string
 	Host       string
@@ -30,6 +26,9 @@ type Config struct {
 	LogFile    string
 	Db         pgx.ConnConfig
 }
+
+var logger *log.Logger
+var pt protocol.Protocol
 
 func LoadConfig() (config *Config) {
 	args := os.Args
