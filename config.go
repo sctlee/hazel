@@ -25,6 +25,7 @@ type Config struct {
 	Port       string
 	LogFile    string
 	Db         pgx.ConnConfig
+	Redis      db.RedisConfig
 }
 
 var logger *log.Logger
@@ -67,6 +68,9 @@ func LoadConfig() (config *Config) {
 
 	// set database
 	db.StartPool(config.Db)
+	if config.Redis.Name != "" {
+		db.StartRedisPool(config.Redis)
+	}
 
 	return
 }

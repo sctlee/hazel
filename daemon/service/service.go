@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/sctlee/tcpx/daemon/message"
@@ -50,11 +49,10 @@ func (self *Service) PutMessage(msg *message.Message) error {
 		// 防止写入超时
 		select {
 		case <-time.After(time.Second * 2):
-			fmt.Println("write channel timeout")
+			return errors.New("write channel timeout")
 		case self.Sessions[msg.Session] <- msg:
-			fmt.Println("write ok")
+			return nil
 		}
-		return nil
 	}
 	self.Sessions[msg.Session] = msg.Response
 	if _, ok := self.Routes[msg.Command]; ok {
