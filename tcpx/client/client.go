@@ -1,11 +1,11 @@
-package tcpx
+package client
 
 import (
 	"log"
 	"net"
 
-	"github.com/sctlee/tcpx/base"
 	"github.com/sctlee/tcpx/sharedpreferences"
+	"github.com/sctlee/tcpx/tcpx/base"
 )
 
 const (
@@ -28,7 +28,10 @@ type IClient interface {
 }
 
 type Client struct {
-	c        IClient
+	c IClient
+
+	Cid string
+
 	incoming chan string
 	outgoing chan string
 
@@ -39,11 +42,12 @@ type Client struct {
 	sharedPreferences map[string]sharedpreferences.SharedPreferences
 }
 
-func CreateClient(conn net.Conn) (client *Client) {
+func CreateClient(conn net.Conn, cid string) (client *Client) {
 	client = &Client{
 		c:                 base.NewTCPClient(conn),
 		incoming:          make(chan string),
 		outgoing:          make(chan string),
+		Cid:               cid,
 		State:             CLIENT_STATE_OPEN,
 		onCloseFuncs:      make([]OnCloseListener, 0),
 		sharedPreferences: make(map[string]sharedpreferences.SharedPreferences),
@@ -69,7 +73,7 @@ func (self *Client) PutOutgoing(str string) {
 func (self *Client) Read() {
 	err := self.c.TRead(self.incoming)
 	if err != nil {
-		logger.Printf("Read error %s\n", err)
+		// logger.Printf("Read error %s\n", err)
 		log.Printf("Read error %s\n", err)
 		self.Close()
 	}
@@ -78,11 +82,11 @@ func (self *Client) Read() {
 func (self *Client) Write() {
 	err := self.c.TWrite(self.outgoing)
 	if err != nil {
-		logger.Printf("Write error %s\n", err)
+		// logger.Printf("Write error %s\n", err)
 		log.Printf("Write error %s\n", err)
 	} else {
 		log.Println("client writer closed")
-		logger.Println("client writer closed")
+		// logger.Println("client writer closed")
 	}
 }
 
@@ -101,7 +105,7 @@ func (self *Client) Close() {
 	close(self.incoming)
 	close(self.outgoing)
 
-	logger.Println("Client close")
+	// logger.Println("Client close")
 	log.Println("Client close")
 }
 

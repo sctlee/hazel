@@ -1,16 +1,17 @@
 package auth
 
 import (
-	. "github.com/sctlee/tcpx/auth/action"
-
-	"github.com/sctlee/tcpx"
+	"github.com/sctlee/tcpx/daemon/service"
 )
 
-var userAction = NewUserAction()
+var AuthService = NewAuthAction()
 
-var Router = map[string]tcpx.RouteFun{
-	"setName": userAction.SetUserName,
-	"login":   userAction.Login,
-	"logout":  userAction.Logout,
-	"signup":  userAction.Signup,
+func (self *AuthAction) GetRouteList() service.RouteList {
+	return service.RouteList{
+		"setName":     self.SetUserName,
+		"login":       self.Login,
+		"logout":      self.Logout,
+		"signup":      self.Signup,
+		"getusername": self.GetUserName,
+	}
 }
