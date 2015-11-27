@@ -49,6 +49,7 @@ func MainDaemon(config *Config, services ...*service.Service) {
 func SendMessage(msg *message.Message) {
 	err := d.MsgManager.PutMessage(msg)
 	if err != nil {
+		logger.Println(err)
 		fmt.Println(err)
 	}
 }

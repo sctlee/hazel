@@ -24,6 +24,11 @@ type Manager interface {
 	PutMessage(msg *Message) error
 }
 
+func CopySession(src *Message, des *Message) {
+	des.Session = src.Session
+	des.Response = src.Response
+}
+
 func NewMessage(pt protocol.Protocol, src string, des string, rawData interface{}, t string) *Message {
 	var params map[string]string
 	switch rawData.(type) {
@@ -47,7 +52,7 @@ func NewMessage(pt protocol.Protocol, src string, des string, rawData interface{
 		Params:  params,
 
 		Session:  uuid,
-		Response: make(chan *Message, 0),
+		Response: make(chan *Message),
 	}
 
 	if len(des) == 0 {

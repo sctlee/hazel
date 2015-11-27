@@ -77,6 +77,7 @@ func (self *Server) Start() error {
 							self.config.Pt, string(cid), "", rawData, daemon.MESSAGE_TYPE_TOSERVICE))
 
 					if err != nil {
+						fmt.Sprintf("server.error|msg:%s", err)
 						self.d.MsgManager.PutMessage(
 							daemon.NewSimpleMessage(
 								string(cid),
