@@ -46,7 +46,7 @@ func (self *Daemon) Join(client *client.Client) {
 
 func (self *Daemon) Quit(client *client.Client) {
 	delete(self.Clients, client.Cid)
-	Logger.Println(fmt.Sprintf("one client joined, id:%s", client.Cid))
+	Logger.Println(fmt.Sprintf("one client quited, id:%s", client.Cid))
 	fmt.Println("one client quited")
 }
 
