@@ -28,7 +28,10 @@ type IClient interface {
 }
 
 type Client struct {
-	c        IClient
+	c IClient
+
+	Cid string
+
 	incoming chan string
 	outgoing chan string
 
@@ -39,11 +42,12 @@ type Client struct {
 	sharedPreferences map[string]sharedpreferences.SharedPreferences
 }
 
-func CreateClient(conn net.Conn) (client *Client) {
+func CreateClient(conn net.Conn, cid string) (client *Client) {
 	client = &Client{
 		c:                 base.NewTCPClient(conn),
 		incoming:          make(chan string),
 		outgoing:          make(chan string),
+		Cid:               cid,
 		State:             CLIENT_STATE_OPEN,
 		onCloseFuncs:      make([]OnCloseListener, 0),
 		sharedPreferences: make(map[string]sharedpreferences.SharedPreferences),

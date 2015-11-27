@@ -13,11 +13,16 @@ var serverName string
 var d *daemon.Daemon
 
 func MainDaemon(config *Config, services ...*service.Service) {
-	server := server.NewServer()
+	serverConfig := &server.ServerConfig{
+		ServerName: config.ServerName,
+		Port:       config.Port,
+		Pt:         pt,
+	}
+	server := server.NewServer(serverConfig)
 
 	serveErrWait := make(chan error)
 	go func() {
-		if err := server.Start(config.Port); err != nil {
+		if err := server.Start(); err != nil {
 			serveErrWait <- err
 		}
 	}()
@@ -29,8 +34,9 @@ func MainDaemon(config *Config, services ...*service.Service) {
 	}
 
 	d = daemon.NewDaemon(daemonConfig)
+
 	for _, s := range services {
-		d.RegisterService(s)
+		d.SrvManager.RegisterService(s)
 	}
 
 	server.AcceptConnections(d)
@@ -41,5 +47,8 @@ func MainDaemon(config *Config, services ...*service.Service) {
 }
 
 func SendMessage(msg *message.Message) {
-	d.MsgManager.PutMessage(msg)
+	err := d.MsgManager.PutMessage(msg)
+	if err != nil {
+		fmt.Println(err)
+	}
 }

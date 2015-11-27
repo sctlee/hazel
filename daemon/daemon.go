@@ -9,21 +9,21 @@ import (
 	"github.com/sctlee/tcpx/tcpx/client"
 )
 
-type ClientID string
-type ClientMap map[ClientID]*client.Client
+type ClientMap map[string]*client.Client // string:Cid
 
 type ServiceList map[string]*service.Service
 
 type Daemon struct {
-	Clients ClientMap
-	Pending chan *client.Client
-	// quiting  chan net.Conn
+	Clients      ClientMap
+	Pending      chan *client.Client
+	Quiting      chan *client.Client // string : cid
 	joinedNumber int
 
 	config *DaemonConfig
 
 	MsgManager message.Manager
-	Services   ServiceList
+	SrvManager service.Manager
+	// Services       ServiceManagereList
 }
 
 func (self *Daemon) Listen() {
@@ -31,72 +31,36 @@ func (self *Daemon) Listen() {
 		select {
 		case client := <-self.Pending:
 			self.Join(client)
+		case client := <-self.Quiting:
+			self.SrvManager.TriggerEvent(EVENT_CLIENT_QUIT, client.Cid)
+			self.Quit(client)
 		}
 	}
 }
 
 func (self *Daemon) Join(client *client.Client) {
-	genClientID := func() ClientID {
-		return ClientID(fmt.Sprintf("%s.%d", self.config.ServerName, self.joinedNumber))
-	}
-
-	cid := genClientID()
-	fmt.Println("client id :" + cid)
-	self.Clients[cid] = client
-	self.joinedNumber++
-	Logger.Println(fmt.Sprintf("one client joined, id:%s", string(cid)))
+	self.Clients[client.Cid] = client
+	Logger.Println(fmt.Sprintf("one client joined, id:%s", client.Cid))
 	fmt.Println("one client joined")
-
-	go func(cid ClientID) {
-		c := self.Clients[cid]
-		defer func() {
-			delete(self.Clients, cid)
-			Logger.Println(fmt.Sprintf("one client quited, id:%s", string(cid)))
-			fmt.Println("one client quited")
-		}()
-
-		for {
-			rawData, ok := c.GetIncoming()
-			if !ok {
-				break
-			}
-
-			fmt.Println(rawData)
-
-			err := self.MsgManager.PutMessage(
-				message.NewMessage(
-					self.config.Pt, string(cid), "", rawData, message.MESSAGE_TYPE_TOSERVICE))
-
-			if err != nil {
-				self.MsgManager.PutMessage(
-					message.NewSimpleMessage(
-						string(cid),
-						fmt.Sprintf("server.error|msg:%s", err)))
-
-			}
-			// if !self.Routers.RouteMsg(cid, msg) {
-			// 	c.PutOutgoing("command error, Usage:'chatroom join 1','chatroom send hello'")
-			// self.incoming <- msg
-			// }
-		}
-	}(cid)
 }
 
-func (self *Daemon) RegisterService(s *service.Service) {
-	self.Services[s.Name] = s
-	go s.Listen()
+func (self *Daemon) Quit(client *client.Client) {
+	delete(self.Clients, client.Cid)
+	Logger.Println(fmt.Sprintf("one client joined, id:%s", client.Cid))
+	fmt.Println("one client quited")
 }
 
 var Logger *log.Logger
 
 func NewDaemon(daemonConfig *DaemonConfig) *Daemon {
 	d := &Daemon{
-		Clients:  make(ClientMap),
-		Pending:  make(chan *client.Client),
-		Services: make(ServiceList),
-		config:   daemonConfig,
+		Clients: make(ClientMap),
+		Pending: make(chan *client.Client),
+		Quiting: make(chan *client.Client),
+		config:  daemonConfig,
 	}
 	d.MsgManager = NewMessageManager(d)
+	d.SrvManager = NewServiceManager(d)
 
 	// set log
 	Logger = daemonConfig.Logger

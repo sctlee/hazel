@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"github.com/sctlee/tcpx/daemon"
+	"github.com/sctlee/tcpx/daemon/message"
 	"github.com/sctlee/tcpx/tcpx/base"
 	"github.com/sctlee/tcpx/tcpx/client"
 )
@@ -20,19 +21,21 @@ type IServer interface {
 }
 
 type Server struct {
-	s base.IServer
-	d *daemon.Daemon
+	s      base.IServer
+	d      *daemon.Daemon
+	config *ServerConfig
 	// listener net.Listener
 	// quiting  chan net.Conn
 	start    chan struct{}
 	incoming chan string
 	outgoing chan string
 
+	joinedNumber int
 	// Routers RouterList
 }
 
-func (self *Server) Start(port string) error {
-	self.s.Listen(port)
+func (self *Server) Start() error {
+	self.s.Listen(self.config.Port)
 	defer self.Close()
 
 	<-self.start
@@ -44,8 +47,43 @@ func (self *Server) Start(port string) error {
 			fmt.Println(err)
 			return err
 		} else {
-			tempClient := client.CreateClient(conn)
+
+			genClientID := func() string {
+				self.joinedNumber++
+				return fmt.Sprintf("%s.%d", self.config.ServerName, self.joinedNumber)
+			}
+
+			cid := genClientID()
+
+			fmt.Println("client id :" + cid)
+			tempClient := client.CreateClient(conn, cid)
 			self.d.Pending <- tempClient
+
+			go func(c *client.Client) {
+				defer func() {
+					self.d.Quiting <- c
+				}()
+
+				for {
+					rawData, ok := c.GetIncoming()
+					if !ok {
+						break
+					}
+
+					fmt.Println(rawData)
+
+					err := self.d.MsgManager.PutMessage(
+						message.NewMessage(
+							self.config.Pt, string(cid), "", rawData, daemon.MESSAGE_TYPE_TOSERVICE))
+
+					if err != nil {
+						self.d.MsgManager.PutMessage(
+							daemon.NewSimpleMessage(
+								string(cid),
+								fmt.Sprintf("server.error|msg:%s", err)))
+					}
+				}
+			}(tempClient)
 		}
 	}
 }
@@ -60,10 +98,10 @@ func (self *Server) Close() {
 	self.s.Close()
 }
 
-func NewServer() *Server {
+func NewServer(cf *ServerConfig) *Server {
 	return &Server{
-		s: base.NewTCPServer(),
-		// quiting:  make(chan net.Conn),
+		s:        base.NewTCPServer(),
+		config:   cf,
 		start:    make(chan struct{}),
 		incoming: make(chan string),
 		outgoing: make(chan string),
