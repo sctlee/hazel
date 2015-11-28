@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"github.com/sctlee/tcpx/daemon/service"
+	"github.com/sctlee/hazel/daemon/service"
 )
 
 func (self *AuthAction) GetRouteList() service.RouteList {

@@ -1,7 +1,7 @@
 package daemon
 
 import (
-	"github.com/sctlee/tcpx/daemon/service"
+	"github.com/sctlee/hazel/daemon/service"
 )
 
 type ServiceManager struct {

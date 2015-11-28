@@ -1,12 +1,12 @@
-package tcpx
+package hazel
 
 import (
 	"fmt"
 
-	"github.com/sctlee/tcpx/daemon"
-	"github.com/sctlee/tcpx/daemon/message"
-	"github.com/sctlee/tcpx/daemon/service"
-	"github.com/sctlee/tcpx/tcpx/server"
+	"github.com/sctlee/hazel/daemon"
+	"github.com/sctlee/hazel/daemon/message"
+	"github.com/sctlee/hazel/daemon/service"
+	"github.com/sctlee/hazel/tcpx/server"
 )
 
 var serverName string

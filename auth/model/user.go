@@ -3,7 +3,7 @@ package model
 import (
 	"log"
 
-	"github.com/sctlee/tcpx/db"
+	"github.com/sctlee/hazel/db"
 )
 
 type UserModel struct {

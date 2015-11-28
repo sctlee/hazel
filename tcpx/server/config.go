@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/sctlee/tcpx/protocol"
+	"github.com/sctlee/hazel/protocol"
 )
 
 type ServerConfig struct {

@@ -3,8 +3,8 @@ package daemon
 import (
 	"errors"
 
-	"github.com/sctlee/tcpx/daemon/message"
-	"github.com/sctlee/tcpx/protocol"
+	"github.com/sctlee/hazel/daemon/message"
+	"github.com/sctlee/hazel/protocol"
 )
 
 const (
