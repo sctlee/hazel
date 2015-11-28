@@ -3,7 +3,7 @@ package message
 import (
 	"fmt"
 
-	"github.com/sctlee/tcpx/protocol"
+	"github.com/sctlee/hazel/protocol"
 
 	"github.com/nu7hatch/gouuid"
 )

@@ -4,8 +4,8 @@ import (
 	"log"
 	"net"
 
-	"github.com/sctlee/tcpx/sharedpreferences"
-	"github.com/sctlee/tcpx/tcpx/base"
+	"github.com/sctlee/hazel/sharedpreferences"
+	"github.com/sctlee/hazel/tcpx/base"
 )
 
 const (

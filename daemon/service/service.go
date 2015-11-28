@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/sctlee/tcpx/daemon/message"
+	"github.com/sctlee/hazel/daemon/message"
 
 	"github.com/nu7hatch/gouuid"
 )

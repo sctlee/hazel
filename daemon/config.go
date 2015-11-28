@@ -3,7 +3,7 @@ package daemon
 import (
 	"log"
 
-	"github.com/sctlee/tcpx/protocol"
+	"github.com/sctlee/hazel/protocol"
 )
 
 type DaemonConfig struct {

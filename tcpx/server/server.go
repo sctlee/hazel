@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/sctlee/tcpx/daemon"
-	"github.com/sctlee/tcpx/daemon/message"
-	"github.com/sctlee/tcpx/tcpx/base"
-	"github.com/sctlee/tcpx/tcpx/client"
+	"github.com/sctlee/hazel/daemon"
+	"github.com/sctlee/hazel/daemon/message"
+	"github.com/sctlee/hazel/tcpx/base"
+	"github.com/sctlee/hazel/tcpx/client"
 )
 
 const (

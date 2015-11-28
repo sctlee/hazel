@@ -1,4 +1,4 @@
-package tcpx
+package hazel
 
 import (
 	"fmt"
@@ -6,9 +6,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/sctlee/tcpx/db"
-	"github.com/sctlee/tcpx/mlog"
-	"github.com/sctlee/tcpx/protocol"
+	"github.com/sctlee/hazel/db"
+	"github.com/sctlee/hazel/mlog"
+	"github.com/sctlee/hazel/protocol"
 
 	"github.com/jackc/pgx"
 	"gopkg.in/yaml.v2"
@@ -16,7 +16,7 @@ import (
 
 const (
 	DEFAULT_SERVER_NAME = "default"
-	LOG_DEFAULT_FILE    = "gen.log"
+	LOG_DEFAULT_FILE    = "hazel.log"
 )
 
 type Config struct {

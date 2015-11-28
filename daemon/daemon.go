@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/sctlee/tcpx/daemon/message"
-	"github.com/sctlee/tcpx/daemon/service"
-	"github.com/sctlee/tcpx/tcpx/client"
+	"github.com/sctlee/hazel/daemon/message"
+	"github.com/sctlee/hazel/daemon/service"
+	"github.com/sctlee/hazel/tcpx/client"
 )
 
 type ClientMap map[string]*client.Client // string:Cid

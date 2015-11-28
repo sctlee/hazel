@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	. "github.com/sctlee/tcpx/auth/model"
+	. "github.com/sctlee/hazel/auth/model"
 
-	"github.com/sctlee/tcpx"
-	"github.com/sctlee/tcpx/daemon"
-	"github.com/sctlee/tcpx/daemon/message"
+	"github.com/sctlee/hazel"
+	"github.com/sctlee/hazel/daemon"
+	"github.com/sctlee/hazel/daemon/message"
 	"github.com/sctlee/utils"
 )
 
@@ -22,14 +22,14 @@ func NewAuthAction() *AuthAction {
 
 func (self *AuthAction) SetUserName(msg *message.Message) {
 	if !utils.IsExistInMap(msg.Params, "name") {
-		tcpx.SendMessage(daemon.NewSimpleMessage(msg.Src, "Please input name"))
+		hazel.SendMessage(daemon.NewSimpleMessage(msg.Src, "Please input name"))
 		return
 	}
 	name := msg.Params["name"]
 
 	//TODO: set user name
 
-	tcpx.SendMessage(daemon.NewSimpleMessage(msg.Src, fmt.Sprintf("Hello, %s", name)))
+	hazel.SendMessage(daemon.NewSimpleMessage(msg.Src, fmt.Sprintf("Hello, %s", name)))
 }
 
 func (self *AuthAction) Login(msg *message.Message) {
@@ -37,7 +37,7 @@ func (self *AuthAction) Login(msg *message.Message) {
 		use postgresql
 	*/
 	if !utils.IsExistInMap(msg.Params, "username", "password") {
-		tcpx.SendMessage(daemon.NewSimpleMessage(msg.Src, "msg.Params error"))
+		hazel.SendMessage(daemon.NewSimpleMessage(msg.Src, "msg.Params error"))
 		return
 	}
 	username := msg.Params["username"]
@@ -45,14 +45,14 @@ func (self *AuthAction) Login(msg *message.Message) {
 
 	user, err := Exists(username, password)
 	if err != nil {
-		tcpx.SendMessage(daemon.NewSimpleMessage(msg.Src, "Username or password error!"))
+		hazel.SendMessage(daemon.NewSimpleMessage(msg.Src, "Username or password error!"))
 		return
 	} else {
 		// save login status in msg.Src.sharedPreferences
 		// sp := msg.Src.GetSharedPreferences("Auth")
 		// sp.Set("username", user.Name)
 		self.AuthList[msg.Src] = user.Name
-		tcpx.SendMessage(daemon.NewSimpleMessage(msg.Src, "Login Success!"))
+		hazel.SendMessage(daemon.NewSimpleMessage(msg.Src, "Login Success!"))
 	}
 }
 
@@ -62,15 +62,15 @@ func (self *AuthAction) Logout(msg *message.Message) {
 	// sp.Del("name")
 	if _, ok := self.AuthList[msg.Src]; ok {
 		delete(self.AuthList, msg.Src)
-		tcpx.SendMessage(daemon.NewSimpleMessage(msg.Src, "Logout success!"))
+		hazel.SendMessage(daemon.NewSimpleMessage(msg.Src, "Logout success!"))
 	} else {
-		tcpx.SendMessage(daemon.NewSimpleMessage(msg.Src, "Please login first!"))
+		hazel.SendMessage(daemon.NewSimpleMessage(msg.Src, "Please login first!"))
 	}
 }
 
 func (self *AuthAction) Signup(msg *message.Message) {
 	if !utils.IsExistInMap(msg.Params, "username", "password", "confitm") {
-		tcpx.SendMessage(daemon.NewSimpleMessage(msg.Src, "msg.Params error"))
+		hazel.SendMessage(daemon.NewSimpleMessage(msg.Src, "msg.Params error"))
 		return
 	}
 	username := msg.Params["username"]
@@ -83,12 +83,12 @@ func (self *AuthAction) Signup(msg *message.Message) {
 			Password: password,
 		}
 		if err := user.Save(); err != nil {
-			tcpx.SendMessage(daemon.NewSimpleMessage(msg.Src, "Signup error!"))
+			hazel.SendMessage(daemon.NewSimpleMessage(msg.Src, "Signup error!"))
 		} else {
-			tcpx.SendMessage(daemon.NewSimpleMessage(msg.Src, "Signup success! Now you can login with your account!"))
+			hazel.SendMessage(daemon.NewSimpleMessage(msg.Src, "Signup success! Now you can login with your account!"))
 		}
 	} else {
-		tcpx.SendMessage(daemon.NewSimpleMessage(msg.Src, "confirm is not equal to password"))
+		hazel.SendMessage(daemon.NewSimpleMessage(msg.Src, "confirm is not equal to password"))
 	}
 }
 
@@ -99,5 +99,5 @@ func (self *AuthAction) GetUserName(msg *message.Message) {
 		msg.Params["username"] = "匿名(you have not logined)"
 	}
 	msg.Des = msg.Src
-	tcpx.SendMessage(msg)
+	hazel.SendMessage(msg)
 }
